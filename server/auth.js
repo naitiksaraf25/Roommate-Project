@@ -4,6 +4,14 @@ import { MongoClient } from "mongodb";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import dns from "dns";
+
+// Use public DNS resolvers for reliable MongoDB Atlas SRV resolution on Windows
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  // Ignore if dns override fails in specific restricted environments
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

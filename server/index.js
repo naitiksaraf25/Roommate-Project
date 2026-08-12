@@ -4,9 +4,17 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import dns from "dns";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.js";
 import { requireAuth } from "./middleware/auth.js";
+
+// Use public DNS resolvers for reliable MongoDB Atlas SRV resolution on Windows
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  // Ignore if dns override fails in restricted environments
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
