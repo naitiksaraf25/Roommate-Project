@@ -36,12 +36,16 @@ app.all("/api/auth/*", toNodeHandler(auth));
 
 // Connect to MongoDB
 mongoose
-  .connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
+  .connect(MONGODB_URI, { serverSelectionTimeoutMS: 3000 })
   .then(() => {
     console.log(`[Database] Successfully connected to MongoDB at ${MONGODB_URI}`);
   })
   .catch((err) => {
-    console.error(`[Database] MongoDB connection error: ${err.message}`);
+    console.warn(`[Database] Primary MongoDB connection failed (${err.message}). Connecting to local fallback...`);
+    mongoose
+      .connect("mongodb://127.0.0.1:27017/roomiematch")
+      .then(() => console.log(`[Database] Successfully connected to fallback local MongoDB.`))
+      .catch((e) => console.error(`[Database] Local fallback MongoDB error: ${e.message}`));
   });
 
 // Health check endpoint

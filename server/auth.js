@@ -11,7 +11,17 @@ dotenv.config({ path: path.join(__dirname, "../.env") });
 dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/roomiematch";
-const client = new MongoClient(MONGODB_URI);
+let client;
+try {
+  client = new MongoClient(MONGODB_URI, { serverSelectionTimeoutMS: 3000 });
+  await client.connect();
+  console.log(`[Auth DB] Connected to MongoDB at ${MONGODB_URI}`);
+} catch (err) {
+  console.warn(`[Auth DB] Failed to connect to primary MONGODB_URI (${err.message}). Falling back to local MongoDB mongodb://127.0.0.1:27017/roomiematch`);
+  client = new MongoClient("mongodb://127.0.0.1:27017/roomiematch");
+  await client.connect();
+  console.log(`[Auth DB] Connected to fallback local MongoDB.`);
+}
 const db = client.db();
 
 export const auth = betterAuth({
