@@ -4,6 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./auth.js";
+import { requireAuth } from "./middleware/auth.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +31,9 @@ app.use(
 
 app.use(express.json());
 
+// Mount BetterAuth Express Handler at /api/auth/*
+app.all("/api/auth/*", toNodeHandler(auth));
+
 // Connect to MongoDB
 mongoose
   .connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
@@ -49,7 +55,17 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Sample Protected Route (Guarded by requireAuth middleware)
+app.get("/api/protected-sample", requireAuth, (req, res) => {
+  res.status(200).json({
+    message: "Protected route accessed successfully!",
+    user: req.user,
+    session: req.session,
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`[Server] Server starting on http://localhost:${PORT}`);
   console.log(`[Server] Restricted CORS allowed origin: ${CLIENT_URL}`);
+  console.log(`[Auth] BetterAuth endpoints mounted at /api/auth/*`);
 });
