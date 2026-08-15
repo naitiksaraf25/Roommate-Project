@@ -10,8 +10,8 @@ node_modules/
 .env.production.local
 
 # Uploads directory contents (preserve directory with .gitkeep)
-server/uploads/*
-!server/uploads/.gitkeep
+server/uploads/**/*
+!server/uploads/**/.gitkeep
 
 # Production builds
 client/dist/

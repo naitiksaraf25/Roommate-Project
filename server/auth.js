@@ -65,17 +65,15 @@ export const auth = betterAuth({
       role: {
         type: "string",
         required: false,
-        defaultValue: "seeker",
       },
       accountStatus: {
         type: "string",
         required: false,
         defaultValue: "active",
       },
-      platformVerificationStatus: {
-        type: "string",
+      platformVerification: {
+        type: "object",
         required: false,
-        defaultValue: "pending",
       },
     },
   },

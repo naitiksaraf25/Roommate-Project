@@ -4,12 +4,16 @@ import { Login } from "./components/Login";
 import { Signup } from "./components/Signup";
 import { ForgotPassword } from "./components/ForgotPassword";
 import { EmailVerification } from "./components/EmailVerification";
+import { Onboarding } from "./components/Onboarding";
+import { LifestyleProfileForm } from "./components/LifestyleProfileForm";
+import { LandlordListingForm } from "./components/LandlordListingForm";
 import { ProtectedTest } from "./components/ProtectedTest";
 import "./index.css";
 
 export function App() {
   const { data: sessionData, isPending, refetch } = useSession();
   const [activeTab, setActiveTab] = useState("login"); // 'login' | 'signup' | 'verify' | 'forgot'
+  const [activeView, setActiveView] = useState("profile"); // 'profile' | 'onboarding'
   const [health, setHealth] = useState(null);
 
   useEffect(() => {
@@ -30,7 +34,7 @@ export function App() {
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "1rem" }}>
       <h1>RoomieMatch</h1>
       <p style={{ color: "#94a3b8", fontSize: "1.1rem" }}>
-        BetterAuth Setup — Email/Password & Google OAuth Authentication
+        Prompt 4 — Lifestyle Profiles & Landlord Listings
       </p>
 
       {/* Backend & DB Status Ribbon */}
@@ -48,17 +52,58 @@ export function App() {
       ) : user ? (
         /* Authenticated View */
         <div className="card">
-          <h2>Welcome, {user.name || user.email}!</h2>
-          <div className="status-notice" style={{ textAlign: "left" }}>
-            <p><strong>User ID:</strong> {user.id}</p>
-            <p><strong>Email:</strong> {user.email} {user.emailVerified ? "✅ Verified" : "⚠️ Unverified"}</p>
-            <p><strong>Role (Custom Field):</strong> {user.role || "seeker"}</p>
-            <p><strong>Account Status:</strong> {user.accountStatus || "active"}</p>
-            <p><strong>Platform Verification:</strong> {user.platformVerificationStatus || "pending"}</p>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2>Welcome, {user.name || user.email}!</h2>
+            <button onClick={handleLogout} style={{ background: "#ef4444" }}>Log Out</button>
           </div>
 
+          <div className="status-notice" style={{ textAlign: "left", margin: "1rem 0" }}>
+            <p><strong>User ID:</strong> {user.id}</p>
+            <p><strong>Email:</strong> {user.email} {user.emailVerified ? "✅ Verified" : "⚠️ Unverified"}</p>
+            <p><strong>Role:</strong> <span style={{ color: user.role ? "#a5b4fc" : "#f59e0b" }}>{user.role ? user.role.toUpperCase() : "UNSET (Onboarding Required)"}</span></p>
+            <p><strong>Account Status:</strong> {user.accountStatus || "active"}</p>
+            <p><strong>Platform Verification:</strong> {user.platformVerification?.status || "pending"} (Method: {user.platformVerification?.method || "N/A"})</p>
+          </div>
+
+          {/* Onboarding vs Profile View Routing */}
+          {!user.role ? (
+            <Onboarding user={user} onUserUpdated={() => refetch()} />
+          ) : (
+            <div>
+              <div className="tab-bar" style={{ justifyContent: "center", marginBottom: "1rem" }}>
+                <button
+                  className={activeView === "profile" ? "active" : ""}
+                  onClick={() => setActiveView("profile")}
+                >
+                  {user.role === "landlord" ? "Property Listing Form" : "Lifestyle Profile Form"}
+                </button>
+                <button
+                  className={activeView === "onboarding" ? "active" : ""}
+                  onClick={() => setActiveView("onboarding")}
+                >
+                  Verification Status
+                </button>
+              </div>
+
+              {activeView === "onboarding" && (
+                <Onboarding user={user} onUserUpdated={() => refetch()} />
+              )}
+
+              {activeView === "profile" && (
+                <div>
+                  {(user.role === "seeker" || user.role === "resident") && (
+                    <LifestyleProfileForm user={user} onProfileSaved={() => refetch()} />
+                  )}
+
+                  {user.role === "landlord" && (
+                    <LandlordListingForm user={user} onListingSaved={() => refetch()} />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ margin: "1.5rem 0", display: "flex", gap: "1rem", justifyContent: "center" }}>
-            <button onClick={handleLogout}>Log Out</button>
             <button onClick={() => refetch()}>Refresh Session</button>
           </div>
 

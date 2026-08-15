@@ -7,7 +7,13 @@ import { fileURLToPath } from "url";
 import dns from "dns";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.js";
-import { requireAuth } from "./middleware/auth.js";
+import { requireAuth, requireVerified } from "./middleware/auth.js";
+
+import onboardingRouter from "./routes/onboarding.js";
+import verificationRouter from "./routes/verification.js";
+import documentsRouter from "./routes/documents.js";
+import profileRouter from "./routes/profile.js";
+import photosRouter from "./routes/photos.js";
 
 // Use public DNS resolvers for reliable MongoDB Atlas SRV resolution on Windows
 try {
@@ -41,6 +47,15 @@ app.use(express.json());
 
 // Mount BetterAuth Express Handler at /api/auth/*
 app.all("/api/auth/*", toNodeHandler(auth));
+
+// Mount Platform Feature Routes
+app.use("/api/onboarding", onboardingRouter);
+app.use("/api/verification", verificationRouter);
+app.use("/api/profile", profileRouter);
+
+// Secure Private Document Handler & Public Photo Handler
+app.use("/api/documents", documentsRouter);
+app.use("/api/photos", photosRouter);
 
 // Connect to MongoDB
 mongoose
@@ -76,8 +91,22 @@ app.get("/api/protected-sample", requireAuth, (req, res) => {
   });
 });
 
+// Sample Verified Route (Guarded by requireVerified middleware)
+app.get("/api/verified-sample", requireVerified, (req, res) => {
+  res.status(200).json({
+    message: "Verified route accessed successfully! Platform verification confirmed.",
+    user: req.user,
+    platformVerification: req.user.platformVerification,
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`[Server] Server starting on http://localhost:${PORT}`);
   console.log(`[Server] Restricted CORS allowed origin: ${CLIENT_URL}`);
   console.log(`[Auth] BetterAuth endpoints mounted at /api/auth/*`);
+  console.log(`[Onboarding] Onboarding endpoints mounted at /api/onboarding/*`);
+  console.log(`[Verification] Verification endpoints mounted at /api/verification/*`);
+  console.log(`[Profile] Lifestyle profile & landlord listing endpoints mounted at /api/profile/*`);
+  console.log(`[Documents] Protected document endpoints mounted at /api/documents/*`);
+  console.log(`[Photos] Public photo endpoints mounted at /api/photos/*`);
 });
