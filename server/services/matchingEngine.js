@@ -60,6 +60,21 @@ export function passesHardFilters(requester, candidate) {
     if (candPref === "female_only" && reqGender !== "female") return false;
   }
 
+  // Preferred Room Type Hard Filter (PRD §8.1)
+  const reqRoomPref = requester.preferredRoomType || requester.roomTypePreference;
+  const candRoomType = candidate.roomType;
+
+  if (
+    reqRoomPref &&
+    reqRoomPref !== "any" &&
+    reqRoomPref !== "no_preference" &&
+    candRoomType
+  ) {
+    if (reqRoomPref !== candRoomType) {
+      return false;
+    }
+  }
+
   return true;
 }
 

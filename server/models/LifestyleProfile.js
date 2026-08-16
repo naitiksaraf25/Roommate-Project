@@ -73,6 +73,20 @@ const lifestyleProfileSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // Vacancy specific fields for Resident space-holders
+    rent: {
+      type: Number,
+      min: [0, "Rent cannot be negative"],
+    },
+    roomType: {
+      type: String,
+      enum: ["private_room", "shared_room", "full_flat", "pg_bed"],
+    },
+    preferredRoomType: {
+      type: String,
+      enum: ["private_room", "shared_room", "full_flat", "pg_bed", "any", "no_preference"],
+      default: "any",
+    },
   },
   {
     timestamps: true,

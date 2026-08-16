@@ -1,10 +1,18 @@
+import dns from "dns";
+
+// Use public DNS resolvers for reliable MongoDB Atlas SRV resolution on Windows
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  // Ignore if dns override fails in restricted environments
+}
+
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import dns from "dns";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.js";
 import { requireAuth, requireVerified } from "./middleware/auth.js";
@@ -14,13 +22,8 @@ import verificationRouter from "./routes/verification.js";
 import documentsRouter from "./routes/documents.js";
 import profileRouter from "./routes/profile.js";
 import photosRouter from "./routes/photos.js";
-
-// Use public DNS resolvers for reliable MongoDB Atlas SRV resolution on Windows
-try {
-  dns.setServers(["8.8.8.8", "1.1.1.1"]);
-} catch (e) {
-  // Ignore if dns override fails in restricted environments
-}
+import matchRouter from "./routes/match.js";
+import interestRouter from "./routes/interest.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,6 +55,8 @@ app.all("/api/auth/*", toNodeHandler(auth));
 app.use("/api/onboarding", onboardingRouter);
 app.use("/api/verification", verificationRouter);
 app.use("/api/profile", profileRouter);
+app.use("/api/match", matchRouter);
+app.use("/api/interest", interestRouter);
 
 // Secure Private Document Handler & Public Photo Handler
 app.use("/api/documents", documentsRouter);
@@ -59,16 +64,17 @@ app.use("/api/photos", photosRouter);
 
 // Connect to MongoDB
 mongoose
-  .connect(MONGODB_URI, { serverSelectionTimeoutMS: 3000 })
+  .connect(MONGODB_URI, { serverSelectionTimeoutMS: 10000 })
   .then(() => {
     console.log(`[Database] Successfully connected to MongoDB at ${MONGODB_URI}`);
   })
   .catch((err) => {
-    console.warn(`[Database] Primary MongoDB connection failed (${err.message}). Connecting to local fallback...`);
+    console.error(`[Database Error] Primary MongoDB connection failed (${err.message}). Retrying...`);
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
     mongoose
-      .connect("mongodb://127.0.0.1:27017/roomiematch")
-      .then(() => console.log(`[Database] Successfully connected to fallback local MongoDB.`))
-      .catch((e) => console.error(`[Database] Local fallback MongoDB error: ${e.message}`));
+      .connect(MONGODB_URI, { serverSelectionTimeoutMS: 10000 })
+      .then(() => console.log(`[Database] Successfully connected on retry to MongoDB at ${MONGODB_URI}`))
+      .catch((e) => console.error(`[Database Critical Failure] Unable to connect to MongoDB: ${e.message}`));
   });
 
 // Health check endpoint

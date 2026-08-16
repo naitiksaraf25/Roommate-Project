@@ -41,6 +41,9 @@ export function LifestyleProfileForm({ user, onProfileSaved }) {
             foodPreference: data.profile.foodPreference || "any",
             guestsFrequency: data.profile.guestsFrequency || "weekends_only",
             bio: data.profile.bio || "",
+            rent: data.profile.rent || "",
+            roomType: data.profile.roomType || "private_room",
+            preferredRoomType: data.profile.preferredRoomType || "any",
           });
           setExistingPhotoUrl(data.profile.photoUrl || "");
         }
@@ -160,6 +163,30 @@ export function LifestyleProfileForm({ user, onProfileSaved }) {
           </div>
         </div>
 
+        {user.role === "resident" && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", backgroundColor: "#1e293b", padding: "0.75rem", borderRadius: "8px", margin: "0.5rem 0" }}>
+            <div className="form-group">
+              <label style={{ color: "#38bdf8" }}>Vacancy Rent Amount ($/₹) *</label>
+              <input
+                type="number"
+                name="rent"
+                placeholder="Monthly rent for vacant spot"
+                value={formData.rent}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label style={{ color: "#38bdf8" }}>Vacant Room Type *</label>
+              <select name="roomType" value={formData.roomType} onChange={handleChange}>
+                <option value="private_room">Private Room</option>
+                <option value="shared_room">Shared Room</option>
+                <option value="full_flat">Full Flat</option>
+                <option value="pg_bed">PG Bed</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div className="form-group">
             <label>Your Gender *</label>
@@ -179,6 +206,17 @@ export function LifestyleProfileForm({ user, onProfileSaved }) {
               <option value="female_only">Female Only</option>
             </select>
           </div>
+        </div>
+
+        <div className="form-group">
+          <label>Preferred Room Type *</label>
+          <select name="preferredRoomType" value={formData.preferredRoomType || "any"} onChange={handleChange}>
+            <option value="any">No Preference / Any Room Type</option>
+            <option value="private_room">Private Room</option>
+            <option value="shared_room">Shared Room</option>
+            <option value="full_flat">Full Flat</option>
+            <option value="pg_bed">PG Bed</option>
+          </select>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>

@@ -90,6 +90,9 @@ router.post("/lifestyle", requireAuth, (req, res) => {
         foodPreference,
         guestsFrequency,
         bio,
+        rent,
+        roomType,
+        preferredRoomType,
       } = req.body;
 
       // Validation
@@ -134,6 +137,9 @@ router.post("/lifestyle", requireAuth, (req, res) => {
         guestsFrequency,
         bio: bio ? bio.trim() : "",
         photoUrl,
+        rent: rent !== undefined && rent !== "" ? Number(rent) : undefined,
+        roomType: roomType || undefined,
+        preferredRoomType: preferredRoomType || "any",
       };
 
       const profile = await LifestyleProfile.findOneAndUpdate(

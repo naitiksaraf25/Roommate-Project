@@ -331,6 +331,54 @@ function testFewerThan3EligibleCandidates() {
   console.log("✅ PASSED: Fewer than 3 candidates handled gracefully with explanatory message.");
 }
 
+function testRoomTypeHardFilterAndBackwardCompatibility() {
+  console.log("\n[TEST 9] Testing Preferred Room Type Hard Filter & Backward Compatibility...");
+
+  const baseRequester = {
+    userId: "req_rt_user",
+    gender: "female",
+    genderPreference: "any",
+    accountStatus: "active",
+    platformVerification: { status: "verified" },
+  };
+
+  const privateRoomCand = {
+    userId: "cand_private",
+    roomType: "private_room",
+    gender: "female",
+    genderPreference: "any",
+    accountStatus: "active",
+    platformVerification: { status: "verified" },
+  };
+
+  const pgBedCand = {
+    userId: "cand_pg",
+    roomType: "pg_bed",
+    gender: "female",
+    genderPreference: "any",
+    accountStatus: "active",
+    platformVerification: { status: "verified" },
+  };
+
+  // Case 1: Requester requires private_room -> pg_bed candidate excluded, private_room candidate allowed
+  const privateRoomReq = { ...baseRequester, preferredRoomType: "private_room" };
+  assert.strictEqual(passesHardFilters(privateRoomReq, privateRoomCand), true, "Matching roomType 'private_room' MUST be allowed");
+  assert.strictEqual(passesHardFilters(privateRoomReq, pgBedCand), false, "Mismatched roomType 'pg_bed' MUST be hard-filter excluded");
+
+  // Case 2: Requester sets preferredRoomType: "any" -> all room types allowed
+  const anyRoomReq = { ...baseRequester, preferredRoomType: "any" };
+  assert.strictEqual(passesHardFilters(anyRoomReq, privateRoomCand), true, "RoomType 'any' MUST allow private_room candidate");
+  assert.strictEqual(passesHardFilters(anyRoomReq, pgBedCand), true, "RoomType 'any' MUST allow pg_bed candidate");
+
+  // Case 3: Legacy Requester profile without preferredRoomType field at all (undefined/missing) -> BACKWARD COMPATIBILITY CHECK
+  const legacyReqWithoutRoomPref = { ...baseRequester }; // preferredRoomType is undefined
+  assert.strictEqual(legacyReqWithoutRoomPref.preferredRoomType, undefined);
+  assert.strictEqual(passesHardFilters(legacyReqWithoutRoomPref, privateRoomCand), true, "Legacy requester with missing preferredRoomType MUST allow private_room candidate");
+  assert.strictEqual(passesHardFilters(legacyReqWithoutRoomPref, pgBedCand), true, "Legacy requester with missing preferredRoomType MUST allow pg_bed candidate");
+
+  console.log("✅ PASSED: Room type hard filter and legacy profile backward compatibility verified.");
+}
+
 function runAllTests() {
   testExactMatchScoring();
   testHardFiltersExclusion();
@@ -340,6 +388,7 @@ function runAllTests() {
   testLandlordLinkedTenantBlending();
   testTop3TruncationAndSorting();
   testFewerThan3EligibleCandidates();
+  testRoomTypeHardFilterAndBackwardCompatibility();
 
   console.log("\n=================================================");
   console.log("🎉 ALL MATCHING ENGINE UNIT TESTS PASSED!");
