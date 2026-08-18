@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export function MatchResultsView({ matchRequest, isCached, onRecompute, onBackToForm }) {
+export function MatchResultsView({ matchRequest, isCached, onRecompute, onBackToForm, onOpenChat }) {
   const [expandedBreakdown, setExpandedBreakdown] = useState({});
   const [interestStates, setInterestStates] = useState({}); // { candidateId: { status: 'none'|'pending'|'matched', isMutualMatch: bool } }
   const [loadingInterest, setLoadingInterest] = useState({});
@@ -398,12 +398,22 @@ export function MatchResultsView({ matchRequest, isCached, onRecompute, onBackTo
                   🔒 Contact info protected & hidden until mutual match.
                 </div>
 
-                {/* EXPRESS INTEREST BUTTON (PRD §5.4 US-10) */}
-                <div>
+                {/* EXPRESS INTEREST BUTTON & OPEN CHAT (PRD §5.4 US-10 & US-11) */}
+                <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                   {interestStates[res.candidateId]?.isMutualMatch ? (
-                    <span className="badge badge-success" style={{ padding: "0.4rem 0.8rem", fontSize: "0.85rem" }}>
-                      🎉 Mutually Matched!
-                    </span>
+                    <>
+                      <span className="badge badge-success" style={{ padding: "0.45rem 0.85rem", fontSize: "0.85rem" }}>
+                        🎉 Mutually Matched!
+                      </span>
+                      {onOpenChat && (
+                        <button
+                          onClick={() => onOpenChat(res.candidateId)}
+                          style={{ background: "#2563eb", fontWeight: "bold", fontSize: "0.85rem", padding: "0.45rem 0.85rem" }}
+                        >
+                          💬 Open Chat
+                        </button>
+                      )}
+                    </>
                   ) : interestStates[res.candidateId]?.status === "pending" ? (
                     <button disabled style={{ background: "#475569", cursor: "default", opacity: 0.8 }}>
                       ⏳ Interest Sent (Pending)

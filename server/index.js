@@ -24,6 +24,7 @@ import profileRouter from "./routes/profile.js";
 import photosRouter from "./routes/photos.js";
 import matchRouter from "./routes/match.js";
 import interestRouter from "./routes/interest.js";
+import chatRouter from "./routes/chat.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -57,6 +58,7 @@ app.use("/api/verification", verificationRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/match", matchRouter);
 app.use("/api/interest", interestRouter);
+app.use("/api/chat", chatRouter);
 
 // Secure Private Document Handler & Public Photo Handler
 app.use("/api/documents", documentsRouter);

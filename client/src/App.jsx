@@ -9,13 +9,15 @@ import { LifestyleProfileForm } from "./components/LifestyleProfileForm";
 import { LandlordListingForm } from "./components/LandlordListingForm";
 import { MatchRequirementForm } from "./components/MatchRequirementForm";
 import { MatchResultsView } from "./components/MatchResultsView";
+import { ChatView } from "./components/ChatView";
 import { ProtectedTest } from "./components/ProtectedTest";
 import "./index.css";
 
 export function App() {
   const { data: sessionData, isPending, refetch } = useSession();
   const [activeTab, setActiveTab] = useState("login"); // 'login' | 'signup' | 'verify' | 'forgot'
-  const [activeView, setActiveView] = useState("profile"); // 'profile' | 'onboarding' | 'matching'
+  const [activeView, setActiveView] = useState("profile"); // 'profile' | 'onboarding' | 'matching' | 'chat'
+  const [selectedChatTarget, setSelectedChatTarget] = useState(null);
   const [health, setHealth] = useState(null);
 
   const [matchState, setMatchState] = useState({
@@ -144,6 +146,12 @@ export function App() {
                   ⚡ Find Top Matches
                 </button>
                 <button
+                  className={activeView === "chat" ? "active" : ""}
+                  onClick={() => setActiveView("chat")}
+                >
+                  💬 Active Chats
+                </button>
+                <button
                   className={activeView === "onboarding" ? "active" : ""}
                   onClick={() => setActiveView("onboarding")}
                 >
@@ -215,9 +223,36 @@ export function App() {
                           onBackToForm={() =>
                             setMatchState((prev) => ({ ...prev, viewMode: "form" }))
                           }
+                          onOpenChat={(targetId) => {
+                            setSelectedChatTarget(targetId);
+                            setActiveView("chat");
+                          }}
                         />
                       )}
                     </div>
+                  )}
+                </div>
+              )}
+
+              {activeView === "chat" && (
+                <div>
+                  {!isVerified ? (
+                    <div className="error-alert" style={{ textAlign: "left", margin: "1rem 0" }}>
+                      <h4>🔒 Platform Verification Required</h4>
+                      <p>
+                        Chat functionality is restricted to platform-verified users per PRD §5.4 & §7.
+                      </p>
+                      <p style={{ marginTop: "0.5rem" }}>
+                        Your verification status is <strong>{user.platformVerification?.status || "unverified"}</strong>.
+                        Please switch to the <strong>Verification Status</strong> tab to verify your email/ID and unlock in-app messaging.
+                      </p>
+                    </div>
+                  ) : (
+                    <ChatView
+                      user={user}
+                      initialChatId={selectedChatTarget}
+                      onBackToMatching={() => setActiveView("matching")}
+                    />
                   )}
                 </div>
               )}
